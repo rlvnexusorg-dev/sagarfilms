@@ -4,19 +4,19 @@
     {
       "id": "hero-wedding",
       "description": "A cinematic wedding photography shot",
-      "imageUrl": "https://picsum.photos/seed/wedding1/1920/1080",
+      "imageUrl": "https://fastly.picsum.photos/id/340/1920/1080.jpg?hmac=o3O5OV4Fxeipqe2TIKqhgwiGFwhdYPpKNJ66pOshwms",
       "imageHint": "wedding photography"
     },
     {
       "id": "portfolio-1",
       "description": "Traditional Indian Wedding",
-      "imageUrl": "https://picsum.photos/seed/ind-wedding/800/600",
+      "imageUrl": "https://fastly.picsum.photos/id/340/1920/1080.jpg?hmac=o3O5OV4Fxeipqe2TIKqhgwiGFwhdYPpKNJ66pOshwms",
       "imageHint": "indian wedding"
     },
     {
       "id": "portfolio-2",
       "description": "Romantic Pre-wedding shoot",
-      "imageUrl": "https://picsum.photos/seed/prewed/800/600",
+      "imageUrl": "https://fastly.picsum.photos/id/340/1920/1080.jpg?hmac=o3O5OV4Fxeipqe2TIKqhgwiGFwhdYPpKNJ66pOshwms0",
       "imageHint": "pre-wedding couple"
     },
     {

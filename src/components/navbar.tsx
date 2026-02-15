@@ -2,10 +2,13 @@
 "use client";
 
 import Link from "next/link";
-import { Camera, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { Camera, Menu, X, LogIn, LogOut } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { auth } from "@/lib/firebase";
+import { onAuthStateChanged, signOut, User } from "firebase/auth";
+import { AuthModal } from "@/components/auth-modal";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -17,6 +20,23 @@ const navLinks = [
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Error signing out: ", error);
+    }
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -29,7 +49,7 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center space-x-8">
+        <div className="hidden md:flex items-center space-x-6">
           {navLinks.map((link) => (
             <Link
               key={link.name}
@@ -39,6 +59,20 @@ export function Navbar() {
               {link.name}
             </Link>
           ))}
+          {user ? (
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-medium">Hi, {user.displayName?.split(' ')[0] || user.email}</span>
+              <Button onClick={handleSignOut} variant="outline" size="sm">
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            </div>
+          ) : (
+            <Button onClick={() => setIsAuthModalOpen(true)} variant="ghost" size="sm">
+              <LogIn className="h-4 w-4 mr-2" />
+              Login / Sign Up
+            </Button>
+          )}
           <Button asChild variant="default" className="bg-primary text-primary-foreground">
             <Link href="/booking">Book Session</Link>
           </Button>
@@ -67,6 +101,20 @@ export function Navbar() {
                 {link.name}
               </Link>
             ))}
+             {user ? (
+              <div className="flex flex-col space-y-4 pt-4 border-t">
+                <span className="text-lg font-medium">Hi, {user.displayName?.split(' ')[0] || user.email}</span>
+                <Button onClick={handleSignOut} variant="outline">
+                  <LogOut className="h-5 w-5 mr-2" />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <Button onClick={() => { setIsAuthModalOpen(true); setIsOpen(false); }} variant="outline">
+                <LogIn className="h-5 w-5 mr-2" />
+                Login / Sign Up
+              </Button>
+            )}
             <Button asChild className="w-full">
               <Link href="/booking" onClick={() => setIsOpen(false)}>
                 Book Now
@@ -75,6 +123,7 @@ export function Navbar() {
           </div>
         </div>
       )}
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </nav>
   );
 }

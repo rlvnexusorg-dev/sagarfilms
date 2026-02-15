@@ -5,6 +5,7 @@ import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Star, Camera, Video, Calendar, Sparkles } from "lucide-react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
@@ -45,22 +46,30 @@ const testimonials = [
 ];
 
 export default function Home() {
-  const heroImg = PlaceHolderImages.find(img => img.id === 'hero-wedding');
+  const carouselImages = PlaceHolderImages.filter(img => img.id.startsWith('carousel'));
 
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       
       {/* Hero Section */}
-      <section className="relative h-[85vh] w-full flex items-center justify-center overflow-hidden">
-        <Image
-          src={heroImg?.imageUrl || ""}
-          alt="Hero Wedding"
-          fill
-          className="object-cover brightness-[0.4]"
-          priority
-          data-ai-hint="wedding photography"
-        />
+      <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
+        <Carousel className="w-full h-full" opts={{ loop: true }}>
+          <CarouselContent>
+            {carouselImages.map((img, index) => (
+              <CarouselItem key={index}>
+                <Image
+                  src={img.imageUrl}
+                  alt={img.description}
+                  fill
+                  className="object-cover brightness-[0.4]"
+                  priority={index === 0}
+                  data-ai-hint={img.imageHint}
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
         <div className="relative z-10 text-center text-primary-foreground px-4 animate-fade-in">
           <h1 className="font-headline text-5xl md:text-7xl font-bold mb-6 tracking-tight">
             Moments Frozen in <span className="text-accent italic">Elegance</span>
