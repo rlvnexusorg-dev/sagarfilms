@@ -1,0 +1,47 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "hero-wedding",
+      "description": "A cinematic wedding photography shot",
+      "imageUrl": "https://picsum.photos/seed/wedding1/1920/1080",
+      "imageHint": "wedding photography"
+    },
+    {
+      "id": "portfolio-1",
+      "description": "Traditional Indian Wedding",
+      "imageUrl": "https://picsum.photos/seed/ind-wedding/800/600",
+      "imageHint": "indian wedding"
+    },
+    {
+      "id": "portfolio-2",
+      "description": "Romantic Pre-wedding shoot",
+      "imageUrl": "https://picsum.photos/seed/prewed/800/600",
+      "imageHint": "pre-wedding couple"
+    },
+    {
+      "id": "portfolio-3",
+      "description": "Haldi ceremony colors",
+      "imageUrl": "https://picsum.photos/seed/haldi/800/600",
+      "imageHint": "haldi ceremony"
+    },
+    {
+      "id": "portfolio-4",
+      "description": "Birthday celebration",
+      "imageUrl": "https://picsum.photos/seed/birthday/800/600",
+      "imageHint": "birthday party"
+    },
+    {
+      "id": "portfolio-5",
+      "description": "Sacred wedding ceremony",
+      "imageUrl": "https://picsum.photos/seed/ceremony/800/600",
+      "imageHint": "wedding ceremony"
+    },
+    {
+      "id": "portfolio-6",
+      "description": "Candid wedding moment",
+      "imageUrl": "https://picsum.photos/seed/candid/800/600",
+      "imageHint": "candid wedding"
+    }
+  ]
+}
