@@ -72,7 +72,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="text-sm opacity-60 uppercase tracking-widest font-bold mb-1">Call Us</p>
-                      <p className="text-xl font-bold">+91 98765 43210</p>
+                      <p className="text-xl font-bold">+91 88252 78628</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-4">
@@ -91,8 +91,8 @@ export default function ContactPage() {
                     <div>
                       <p className="text-sm opacity-60 uppercase tracking-widest font-bold mb-1">Visit Studio</p>
                       <p className="text-xl font-bold leading-relaxed">
-                        Studio 12, Heritage Mall,<br />
-                        Near Gateway Circle, Mumbai
+                        Sagar Studio<br />
+                        Nabinagar, Bihar
                       </p>
                     </div>
                   </div>
@@ -103,14 +103,17 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              {/* Mock Map Placeholder */}
+              {/* Google Maps Embed */}
               <div className="relative h-64 w-full rounded-2xl overflow-hidden border border-primary/10">
-                <div className="absolute inset-0 bg-muted-foreground/10 flex items-center justify-center">
-                  <MapPin className="h-12 w-12 text-primary opacity-20" />
-                  <p className="absolute bottom-4 text-xs font-bold tracking-widest uppercase opacity-40">Interactive Studio Map</p>
-                </div>
-                {/* Normally we'd use a real map here, but for now it's a placeholder stylized like our theme */}
-                <div className="absolute inset-0 bg-accent/5 pointer-events-none"></div>
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2993.4411050784443!2d84.62309789999999!3d24.455894800000003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x398cc10004cd1c91%3A0x42fa4dac7f465cd4!2sSagar%20Studio!5e1!3m2!1sen!2sin!4v1771251607544!5m2!1sen!2sin"
+                  width="100%"
+                  height="100%"
+                  allowFullScreen={false}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="absolute inset-0 w-full h-full border-0"
+                ></iframe>
               </div>
             </div>
           </div>

@@ -9,6 +9,8 @@ import { doc, getDoc } from "firebase/firestore";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { FileText, ImageIcon, VideoIcon, CalendarIcon } from "lucide-react";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -20,17 +22,14 @@ export default function AdminPage() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        // Check for admin role
         const userDocRef = doc(firestore, "users", currentUser.uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists() && userDoc.data().role === "admin") {
           setIsAdmin(true);
         } else {
-          // Redirect non-admins
           router.push("/");
         }
       } else {
-        // Redirect logged-out users
         router.push("/");
       }
       setLoading(false);
@@ -52,41 +51,61 @@ export default function AdminPage() {
   }
 
   if (!isAdmin) {
-    // This is a fallback, the redirect should have already happened.
     return null;
   }
+
+  const adminActions = [
+    {
+      title: "Manage Projects",
+      description: "Add, edit, or delete portfolio projects.",
+      icon: FileText,
+      path: "/admin/projects",
+    },
+    {
+      title: "Manage Gallery",
+      description: "Update the images in the main gallery.",
+      icon: ImageIcon,
+      path: "/admin/gallery",
+    },
+    {
+      title: "Manage Videos",
+      description: "Add or remove sample videos.",
+      icon: VideoIcon,
+      path: "/admin/videos",
+    },
+    {
+      title: "View Bookings",
+      description: "See all client bookings and invoices.",
+      icon: CalendarIcon,
+      path: "/admin/bookings",
+    },
+  ];
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Navbar />
       <main className="flex-grow container mx-auto px-4 py-12">
         <h1 className="text-4xl font-headline font-bold text-primary mb-8">Admin Dashboard</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Placeholder for admin actions */}
-          <div className="bg-card p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold mb-4">Manage Projects</h2>
-            <p className="text-muted-foreground mb-4">Add, edit, or delete portfolio projects.</p>
-            <Button>Go to Projects</Button>
-          </div>
-          <div className="bg-card p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold mb-4">Manage Gallery</h2>
-            <p className="text-muted-foreground mb-4">Update the images in the main gallery.</p>
-            <Button>Go to Gallery</Button>
-          </div>
-          <div className="bg-card p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold mb-4">Manage Videos</h2>
-            <p className="text-muted-foreground mb-4">Add or remove sample videos.</p>
-            <Button>Go to Videos</Button>
-          </div>
-           <div className="bg-card p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold mb-4">View Bookings</h2>
-            <p className="text-muted-foreground mb-4">See all client bookings and invoices.</p>
-            <Button>View Bookings</Button>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {adminActions.map((action) => (
+            <Card key={action.title} className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center gap-4">
+                <action.icon className="h-8 w-8 text-primary" />
+                <div>
+                  <CardTitle>{action.title}</CardTitle>
+                  <CardDescription>{action.description}</CardDescription>
+                </div>
+              </CardHeader>
+              <CardFooter>
+                <Button onClick={() => router.push(action.path)} className="w-full">
+                  Go to {action.title.split(" ")[1]}
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
         </div>
       </main>
       <Footer />
     </div>
   );
 }
-

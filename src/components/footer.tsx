@@ -15,9 +15,15 @@ export function Footer() {
             Capturing the rhythm of your life through cinematic storytelling and timeless photography.
           </p>
           <div className="flex space-x-4 pt-4">
-            <Instagram className="h-5 w-5 cursor-pointer hover:text-accent" />
-            <Facebook className="h-5 w-5 cursor-pointer hover:text-accent" />
-            <Youtube className="h-5 w-5 cursor-pointer hover:text-accent" />
+            <Link href="https://www.instagram.com/sagar_flim_studio?igsh=cXoxeWx2djF5aG1u" target="_blank" rel="noopener noreferrer">
+              <Instagram className="h-5 w-5 cursor-pointer hover:text-accent" />
+            </Link>
+            <Link href="https://www.facebook.com/share/1CTvX4VWH4/" target="_blank" rel="noopener noreferrer">
+              <Facebook className="h-5 w-5 cursor-pointer hover:text-accent" />
+            </Link>
+            <Link href="https://youtube.com/@sagarvlog01m?si=y7peh3SI6DoWJFjf" target="_blank" rel="noopener noreferrer">
+                <Youtube className="h-5 w-5 cursor-pointer hover:text-accent" />
+            </Link>
           </div>
         </div>
 
@@ -36,7 +42,7 @@ export function Footer() {
           <ul className="space-y-4">
             <li className="flex items-center space-x-3">
               <Phone className="h-5 w-5 text-accent" />
-              <span>+91 98765 43210</span>
+              <span>+91 88252 78628</span>
             </li>
             <li className="flex items-center space-x-3">
               <Mail className="h-5 w-5 text-accent" />
@@ -44,7 +50,7 @@ export function Footer() {
             </li>
             <li className="flex items-center space-x-3">
               <MapPin className="h-5 w-5 text-accent" />
-              <span>Studio 12, Heritage Mall, Mumbai</span>
+              <span>Sagar Studio, Nabinagar, Bihar</span>
             </li>
           </ul>
         </div>

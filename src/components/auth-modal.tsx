@@ -50,12 +50,14 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const resetState = () => {
       setError(null);
       setMessage(null);
       setEmail('');
       setPassword('');
+      setIsLoading(false);
   }
 
   const handleClose = () => {
@@ -69,6 +71,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         setError("Please enter both email and password.");
         return;
     }
+    setIsLoading(true);
     try {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
@@ -82,11 +85,14 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       handleClose();
     } catch (err: any) {
       setError(err.message.replace("Firebase: ", ""));
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
     resetState();
+    setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
@@ -99,6 +105,8 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       handleClose();
     } catch (err: any) {
       setError(err.message.replace("Firebase: ", ""));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -107,12 +115,15 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       setError("Please enter your email to reset your password.");
       return;
     }
+    setIsLoading(true);
     try {
       await sendPasswordResetEmail(auth, email);
       setMessage("Password reset link sent! Check your inbox.");
       setError(null);
     } catch (err: any) {
       setError(err.message.replace("Firebase: ", ""));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -143,33 +154,33 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               )}
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <Input id="email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} />
               </div>
               {isLogin && (
                 <div className="text-right">
-                    <Button onClick={handlePasswordReset} variant="link" className="px-0 text-xs">
+                    <Button onClick={handlePasswordReset} variant="link" className="px-0 text-xs" disabled={isLoading}>
                         Forgot password?
                     </Button>
                 </div>
               )}
-              <Button onClick={handleAuthAction} className="w-full">
-                {isLogin ? "Login" : "Create Account"}
+              <Button onClick={handleAuthAction} className="w-full" disabled={isLoading}>
+                {isLoading ? "Processing..." : (isLogin ? "Login" : "Create Account")}
               </Button>
               <div className="relative my-2">
                 <Separator />
                 <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-card px-2 text-muted-foreground text-sm">OR</span>
               </div>
-              <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>
+              <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading}>
                 <GoogleIcon /> Continue with Google
               </Button>
             </CardContent>
             <CardFooter className="flex justify-center text-sm">
                 <p>{isLogin ? "Don't have an account?" : "Already have an account?"}</p>
-                <Button variant="link" className="ml-1 px-1" onClick={() => { setIsLogin(!isLogin); resetState(); }}>
+                <Button variant="link" className="ml-1 px-1" onClick={() => { setIsLogin(!isLogin); resetState(); }} disabled={isLoading}>
                     {isLogin ? "Sign up" : "Login"}
                 </Button>
             </CardFooter>
