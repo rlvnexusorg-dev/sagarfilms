@@ -50,7 +50,7 @@ export function Footer() {
             </li>
             <li className="flex items-center space-x-3">
               <MapPin className="h-5 w-5 text-accent" />
-              <span>Sagar Studio, Nabinagar, Bihar</span>
+              <span>Sagar Studio, kundkrai, Jalwar, Bihar 824206</span>
             </li>
           </ul>
         </div>

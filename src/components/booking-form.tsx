@@ -2,16 +2,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { addDays, format } from "date-fns";
+import { addDays, format, isSameDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import { Check, Calendar as CalendarIcon, Package, User, Download } from "lucide-react";
+import { Check, Calendar as CalendarIcon, Package, User, Download, ArrowRight, PartyPopper } from "lucide-react";
 import jsPDF from "jspdf";
 
 const packages = [
@@ -24,299 +24,146 @@ export function BookingForm() {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [bookedDates, setBookedDates] = useState<Date[]>([]);
   const [selectedPackage, setSelectedPackage] = useState("pro");
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    location: "",
-    eventType: "wedding",
-    duration: "fullday",
-  });
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
-  // Fetch booked dates from the API when the component mounts
   useEffect(() => {
     const fetchBookedDates = async () => {
       try {
         const response = await fetch("/api/bookings");
         const data = await response.json();
-        // The API returns date strings, so we convert them to Date objects
-        const dates = data.map((dateString: string) => new Date(dateString));
-        setBookedDates(dates);
+        setBookedDates(data.map((d: string) => new Date(d)));
       } catch (error) {
-        toast({ title: "Error", description: "Could not fetch booked dates.", variant: "destructive" });
+        toast({ title: "Error", description: "Could not fetch schedule.", variant: "destructive" });
       }
     };
     fetchBookedDates();
   }, []);
 
-  const handleNext = () => setStep(step + 1);
-  const handleBack = () => setStep(step - 1);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
-  };
-  
-  const handleSelectChange = (id: string, value: string) => {
-    setFormData(prev => ({ ...prev, [id]: value }));
-  };
-
-  const generateInvoice = () => {
-    const doc = new jsPDF();
-    const selectedPkg = packages.find(p => p.id === selectedPackage);
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    doc.text("Sagar Films Studio - Booking Invoice", 20, 20);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.text(`Invoice #${Date.now()}`, 20, 30);
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 35);
-
-    doc.line(20, 40, 190, 40);
-
-    doc.setFontSize(14);
-    doc.text("Bill To:", 20, 50);
-    doc.setFontSize(12);
-    doc.text(formData.name, 20, 57);
-    doc.text(formData.email, 20, 62);
-    doc.text(formData.phone, 20, 67);
-
-    doc.text("Event Details:", 100, 50);
-    doc.text(`Date: ${date ? format(date, "PPP") : 'N/A'}`, 100, 57);
-    doc.text(`Location: ${formData.location}`, 100, 62);
-    doc.text(`Type: ${formData.eventType}`, 100, 67);
-
-    doc.line(20, 80, 190, 80);
-
-    doc.setFontSize(14);
-    doc.text("Booking Summary", 20, 90);
-    doc.setFontSize(12);
-    doc.text(`Package: ${selectedPkg?.name}`, 20, 97);
-    doc.text(`Price: ${selectedPkg?.price}`, 20, 102);
-
-    doc.line(20, 110, 190, 110);
-    
-    doc.setFontSize(16);
-    doc.text(`Total: ${selectedPkg?.price}`, 140, 120);
-
-    doc.setFontSize(10);
-    doc.text("Thank you for your business!", 20, 140);
-
-    return doc;
+    setFormData(prev => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
   const handleBookingConfirm = async () => {
-    if (!date) {
-      toast({ title: "Error", description: "Please select a date.", variant: "destructive" });
-      return;
-    }
+    if (!date) return;
 
-    // Save the new booking to the server
     try {
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: date.toISOString() }), // Send in ISO format
+        body: JSON.stringify({ date: date.toISOString() }),
       });
-      if (!response.ok) throw new Error("Failed to save booking.");
+      if (!response.ok) throw new Error("Booking failed.");
 
-      // Add the new date to our local state to instantly update the UI
       setBookedDates(prev => [...prev, date]);
-      toast({ title: "Booking Saved", description: "Your date has been reserved." });
-
+      toast({ title: "Success!", description: `Date ${format(date, "PPP")} is booked.` });
+      setIsConfirmed(true);
     } catch (error) {
-      toast({ title: "Booking Error", description: "Could not save your booking. Please try again.", variant: "destructive" });
-      return; // Stop if booking fails
+      toast({ title: "Error", description: "Could not save your booking.", variant: "destructive" });
     }
-
-    // Generate and download the invoice
-    const pdf = generateInvoice();
-    pdf.save("SagarFilms_Invoice.pdf");
-
-    // Move to the final confirmation step
-    setStep(4);
   };
-  
-  if (step === 4) {
+
+  const selectedPkg = packages.find(p => p.id === selectedPackage);
+
+  if (isConfirmed) {
     return (
-      <div className="p-12 text-center animate-in fade-in zoom-in duration-500">
-        <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Check className="h-10 w-10 text-green-600" />
-        </div>
-        <h2 className="font-headline text-3xl font-bold text-primary mb-4">Thank You!</h2>
-        <p className="text-muted-foreground mb-8">Your booking for {date ? format(date, "PPP") : 'your selected date'} has been confirmed. An invoice has been downloaded.</p>
-        <Button onClick={() => window.location.href = '/'} className="bg-primary">Return Home</Button>
-      </div>
+      <Card className="w-full max-w-4xl mx-auto shadow-xl animate-in fade-in-50 zoom-in-95">
+        <CardContent className="p-12 text-center">
+          <PartyPopper className="w-16 h-16 text-green-500 mx-auto mb-6" />
+          <h2 className="text-3xl font-bold font-headline text-primary mb-4">Booking Confirmed!</h2>
+          <p className="text-muted-foreground text-lg mb-2">Thank you, {formData.name}!</p>
+          <p className="text-muted-foreground text-lg mb-8">Your session for <span className="font-bold text-primary">{date ? format(date, "PPP") : ""}</span> is locked in. We will contact you shortly.</p>
+          <Button onClick={() => window.location.reload()} size="lg">Book Another Session</Button>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto shadow-2xl overflow-hidden">
-      <div className="flex flex-col lg:flex-row">
-        {/* Sidebar */}
-        <div className="lg:w-1/3 bg-gray-50 dark:bg-gray-900 p-8 border-r border-gray-200 dark:border-gray-800">
-          <h3 className="font-headline text-2xl font-bold mb-10 text-primary">Reservation Steps</h3>
-          <div className="space-y-8">
-            {[
-              { id: 1, label: "Event Details", icon: CalendarIcon },
-              { id: 2, label: "Package Selection", icon: Package },
-              { id: 3, label: "Confirm & Pay", icon: User },
-            ].map((s) => (
-              <div key={s.id} className={`flex items-center space-x-4 transition-all duration-300 ${step >= s.id ? "opacity-100" : "opacity-40"}`}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${step >= s.id ? "bg-primary text-primary-foreground border-primary" : "border-gray-400 text-gray-400"}`}>
-                  {step > s.id ? <Check className="h-5 w-5"/> : <s.icon className="h-5 w-5" />}
-                </div>
-                <span className={`font-medium ${step >= s.id ? "text-primary font-bold" : ""}`}>{s.label}</span>
-              </div>
-            ))}
-          </div>
+    <Card className="w-full max-w-5xl mx-auto shadow-2xl overflow-hidden animate-in fade-in-50">
+      <div className="grid grid-cols-1 md:grid-cols-2">
+        {/* Left Panel: Calendar */}
+        <div className="p-8 border-r bg-gray-50/50">
+          <CardHeader className="px-0 pt-0">
+            <CardTitle className="font-headline text-3xl text-primary">Select a Date</CardTitle>
+          </CardHeader>
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            disabled={[{ before: new Date() }, ...bookedDates]}
+            className="p-0 rounded-md"
+            classNames={{
+              day_selected: "bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary",
+              day_today: "bg-accent/50 text-accent-foreground",
+              day_disabled: "text-muted-foreground/50 opacity-50 line-through",
+            }}
+            components={{
+              Day: ({ date, ...props }) => {
+                const isBooked = bookedDates.some(bookedDate => isSameDay(bookedDate, date));
+                return (
+                  <div {...props.buttonProps} className={`${props.className} relative`}>
+                    {props.formattedDate}
+                    {isBooked && <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-red-500 rounded-full"></div>}
+                  </div>
+                );
+              }
+            }}
+          />
         </div>
 
-        {/* Content */}
-        <div className="flex-1 p-8 lg:p-12">
-            {step === 1 && (
-              <div className="space-y-8 animate-in slide-in-from-right duration-300">
-                <h2 className="font-headline text-2xl font-bold text-primary">When and What?</h2>
-                <div className="grid md:grid-cols-2 gap-12 items-start">
-                  <div className="space-y-4">
-                    <Label className="text-lg font-semibold">Select your date</Label>
-                    <Card className="overflow-hidden shadow-lg">
-                      <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        disabled={[
-                          ...bookedDates, // Disable dates fetched from the server
-                          { before: addDays(new Date(), 1) } // Disable past dates
-                        ]}
-                        initialFocus
-                        className="p-0"
-                        classNames={{
-                          root: "w-full",
-                          months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                          month: "space-y-4",
-                          caption: "flex justify-center pt-4 relative items-center text-lg font-bold",
-                          nav: "space-x-1 flex items-center",
-                          head_row: "flex justify-evenly w-full mt-4 font-semibold",
-                          row: "flex w-full mt-2 justify-evenly",
-                          day: "h-10 w-10 text-center text-base p-0 relative aria-selected:opacity-100",
-                          day_selected: "bg-primary text-primary-foreground hover:bg-primary/90 rounded-full",
-                          day_today: "bg-accent text-accent-foreground rounded-full",
-                          day_outside: "text-muted-foreground opacity-50",
-                          day_disabled: "bg-muted text-muted-foreground opacity-50 cursor-not-allowed line-through", // Updated style for booked dates
-                        }}
-                      />
-                    </Card>
-                  </div>
-                  <div className="space-y-8">
-                    <div className="space-y-4">
-                      <Label className="text-lg font-semibold">Event Type</Label>
-                      <Select defaultValue={formData.eventType} onValueChange={(v) => handleSelectChange("eventType", v)}>
-                        <SelectTrigger className="py-6 text-lg"> 
-                          <SelectValue placeholder="What are we shooting?" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="wedding">Wedding</SelectItem>
-                          <SelectItem value="prewedding">Pre-Wedding</SelectItem>
-                          <SelectItem value="haldi">Haldi / Ceremony</SelectItem>
-                          <SelectItem value="birthday">Birthday</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-4">
-                      <Label className="text-lg font-semibold">Expected Duration</Label>
-                      <RadioGroup defaultValue={formData.duration} onValueChange={(v) => handleSelectChange("duration", v)} className="space-y-3">
-                        <Label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors has-[:checked]:bg-accent has-[:checked]:text-accent-foreground has-[:checked]:border-accent">
-                          <RadioGroupItem value="halfday" id="half" />
-                          <span>Half Day (4-6 Hours)</span>
-                        </Label>
-                        <Label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors has-[:checked]:bg-accent has-[:checked]:text-accent-foreground has-[:checked]:border-accent">
-                          <RadioGroupItem value="fullday" id="full" />
-                          <span>Full Day (8-12 Hours)</span>
-                        </Label>
-                      </RadioGroup>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex justify-end pt-8">
-                  <Button type="button" onClick={handleNext} size="lg" className="px-10" disabled={!date}>Next Step</Button>
-                </div>
-              </div>
-            )}
-
-            {step === 2 && (
-              <div className="space-y-8 animate-in slide-in-from-right duration-300">
-                <h2 className="font-headline text-2xl font-bold text-primary">Choose Your Package</h2>
-                <div className="grid md:grid-cols-3 gap-6">
-                  {packages.map((pkg) => (
-                    <Card 
-                      key={pkg.id} 
-                      className={`cursor-pointer transition-all border-2 flex flex-col ${selectedPackage === pkg.id ? "border-primary ring-2 ring-primary/20 scale-105" : "hover:shadow-lg"}`}
-                      onClick={() => setSelectedPackage(pkg.id)}
-                    >
-                      <CardContent className="p-6 flex flex-col flex-grow">
-                        <div className="text-xl font-bold mb-2 font-headline">{pkg.name}</div>
-                        <div className="text-3xl font-bold text-primary mb-4">{pkg.price}</div>
-                        <ul className="space-y-2 text-sm text-muted-foreground flex-grow">
-                          {pkg.features.map((f, i) => (
-                            <li key={i} className="flex items-start">
-                              <Check className="h-4 w-4 text-green-500 mr-2 mt-0.5 shrink-0" />
-                              {f}
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                      {selectedPackage === pkg.id && (
-                        <div className="mt-auto p-3 bg-primary/10 text-primary font-bold text-xs uppercase tracking-widest text-center">
-                          Selected
-                        </div>
-                      )}
-                    </Card>
+        {/* Right Panel: Booking Details */}
+        <div className="p-8 flex flex-col">
+          {!date ? (
+            <div className="flex flex-col items-center justify-center h-full text-center animate-in fade-in-50">
+              <CalendarIcon className="w-24 h-24 text-gray-300 mb-4" />
+              <h3 className="font-headline text-2xl text-gray-500">Your Schedule Awaits</h3>
+              <p className="text-muted-foreground mt-2">Select a day on the calendar to begin your booking process.</p>
+            </div>
+          ) : (
+            <div className="animate-in fade-in-50 space-y-6">
+              <CardHeader className="px-0 pt-0">
+                <CardTitle className="font-headline text-3xl text-primary">
+                  Book for <span className="text-accent">{format(date, "PPP")}</span>
+                </CardTitle>
+              </CardHeader>
+              
+              <div className="space-y-4">
+                <Label className="font-semibold text-lg">Choose Your Package</Label>
+                <RadioGroup value={selectedPackage} onValueChange={setSelectedPackage} className="grid grid-cols-2 gap-4">
+                  {packages.slice(0, 2).map(pkg => (
+                    <Label key={pkg.id} className="border rounded-lg p-4 cursor-pointer has-[:checked]:bg-primary/10 has-[:checked]:border-primary transition-all">
+                      <RadioGroupItem value={pkg.id} className="sr-only" />
+                      <h4 className="font-bold text-lg">{pkg.name}</h4>
+                      <p className="font-bold text-primary text-xl">{pkg.price}</p>
+                    </Label>
                   ))}
-                </div>
-                <div className="flex justify-between pt-8">
-                  <Button type="button" variant="outline" onClick={handleBack}>Back</Button>
-                  <Button type="button" onClick={handleNext} size="lg" className="px-10">Next Step</Button>
-                </div>
+                </RadioGroup>
+                <Select onValueChange={setSelectedPackage} defaultValue={selectedPackage}>
+                    <SelectTrigger><SelectValue placeholder="Or select other packages..." /></SelectTrigger>
+                    <SelectContent>
+                        {packages.map(pkg => <SelectItem key={pkg.id} value={pkg.id}>{pkg.name} - {pkg.price}</SelectItem>)}
+                    </SelectContent>
+                </Select>
               </div>
-            )}
 
-            {step === 3 && (
-              <div className="space-y-8 animate-in slide-in-from-right duration-300">
-                <h2 className="font-headline text-2xl font-bold text-primary">Your Contact Details</h2>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <Input id="name" placeholder="Full Name" value={formData.name} onChange={handleInputChange} required className="py-6"/>
-                  <Input id="email" type="email" placeholder="Email Address" value={formData.email} onChange={handleInputChange} required className="py-6"/>
-                  <Input id="phone" placeholder="Phone Number" value={formData.phone} onChange={handleInputChange} required className="py-6"/>
-                  <Input id="location" placeholder="Event Location (City, Venue)" value={formData.location} onChange={handleInputChange} required className="py-6"/>
-                </div>
-                <Card className="bg-gray-50 dark:bg-gray-900/50 p-6 border-l-4 border-primary">
-                  <h4 className="font-bold mb-3">Booking Summary</h4>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Package:</span>
-                    <span className="font-bold">{packages.find(p => p.id === selectedPackage)?.name}</span>
-                  </div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Price:</span>
-                    <span className="font-bold">{packages.find(p => p.id === selectedPackage)?.price}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Date:</span>
-                    <span className="font-bold">{date ? format(date, "PPP") : 'N/A'}</span>
-                  </div>
-                </Card>
-                <div className="flex justify-between pt-8">
-                  <Button type="button" variant="outline" onClick={handleBack}>Back</Button>
-                  <Button onClick={handleBookingConfirm} size="lg" className="px-10 bg-green-600 hover:bg-green-700" disabled={!formData.name || !formData.email || !formData.phone}>
-                    <Download className="mr-2 h-5 w-5" />
-                    Confirm & Download Invoice
-                  </Button>
+              <div className="space-y-4">
+                <Label className="font-semibold text-lg">Your Details</Label>
+                <div className="grid grid-cols-1 gap-4">
+                  <Input id="name" placeholder="Full Name" value={formData.name} onChange={handleInputChange} required />
+                  <Input id="email" type="email" placeholder="Email Address" value={formData.email} onChange={handleInputChange} required />
+                  <Input id="phone" placeholder="Phone Number" value={formData.phone} onChange={handleInputChange} required />
                 </div>
               </div>
-            )}
+
+              <CardFooter className="px-0 pb-0 pt-6">
+                <Button onClick={handleBookingConfirm} size="lg" className="w-full text-lg" disabled={!formData.name || !formData.email || !formData.phone}>
+                  Confirm Booking for {selectedPkg?.price}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </CardFooter>
+            </div>
+          )}
         </div>
       </div>
     </Card>

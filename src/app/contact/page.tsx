@@ -92,7 +92,7 @@ export default function ContactPage() {
                       <p className="text-sm opacity-60 uppercase tracking-widest font-bold mb-1">Visit Studio</p>
                       <p className="text-xl font-bold leading-relaxed">
                         Sagar Studio<br />
-                        Nabinagar, Bihar
+                        kundkrai, Jalwar, Bihar 824206
                       </p>
                     </div>
                   </div>
