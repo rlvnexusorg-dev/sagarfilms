@@ -11,8 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import { Check, Calendar as CalendarIcon, Package, User, Download, ArrowRight, PartyPopper } from "lucide-react";
-import jsPDF from "jspdf";
+import { Calendar as CalendarIcon, ArrowRight, PartyPopper } from "lucide-react";
 
 const packages = [
   { id: "basic", name: "Classic Story", price: "₹25,000", features: ["6 Hours Coverage", "200 Edited Photos", "3-min Highlight Reel"] },
@@ -82,7 +81,6 @@ export function BookingForm() {
   return (
     <Card className="w-full max-w-5xl mx-auto shadow-2xl overflow-hidden animate-in fade-in-50">
       <div className="grid grid-cols-1 md:grid-cols-2">
-        {/* Left Panel: Calendar */}
         <div className="p-8 border-r bg-gray-50/50">
           <CardHeader className="px-0 pt-0">
             <CardTitle className="font-headline text-3xl text-primary">Select a Date</CardTitle>
@@ -91,7 +89,7 @@ export function BookingForm() {
             mode="single"
             selected={date}
             onSelect={setDate}
-            disabled={[{ before: new Date() } ]}
+            disabled={[{ before: new Date() }, ...bookedDates]}
             className="p-0 rounded-md"
             classNames={{
               day_selected: "bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary",
@@ -99,28 +97,22 @@ export function BookingForm() {
               day_disabled: "text-muted-foreground/50 opacity-50",
             }}
             components={{
-              Day: (props) => {
-                const dayDate = props.date;
-                if (!dayDate) return <div />;
-                const isBooked = bookedDates.some((bookedDate) => isSameDay(bookedDate, dayDate));
-                if (isBooked) {
-                  return (
-                    <div {...props} className={`${props.className} text-muted-foreground/50 opacity-50 line-through`}>
-                      {dayDate.getDate()}
-                    </div>
-                  )
-                }
+              DayContent: ({ day, ...props }) => {
+                const dayDate = day?.date;
+                const isBooked = dayDate ? bookedDates.some((bookedDate) => isSameDay(bookedDate, dayDate)) : false;
                 return (
-                  <div {...props} className={props.className}>
-                    {dayDate.getDate()}
+                  <div className="relative">
+                    {dayDate?.getDate()}
+                    {isBooked && (
+                      <div className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-destructive" />
+                    )}
                   </div>
-                )
-              }
+                );
+              },
             }}
           />
         </div>
 
-        {/* Right Panel: Booking Details */}
         <div className="p-8 flex flex-col">
           {!date ? (
             <div className="flex flex-col items-center justify-center h-full text-center animate-in fade-in-50">
