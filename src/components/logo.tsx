@@ -4,73 +4,77 @@ export function Logo({ className }: { className?: string }) {
   return (
     <div className={cn("flex items-center", className)}>
       <svg
-        viewBox="0 0 400 120"
-        className="h-12 w-auto"
+        viewBox="0 0 450 140"
+        className="h-16 w-auto"
         xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="xMidYMid meet"
       >
-        {/* Red Arc */}
+        {/* Red Arc framing the camera */}
         <path
-          d="M 100 20 A 50 50 0 1 0 100 100"
+          d="M 110 25 A 60 60 0 1 0 110 125"
           fill="none"
           stroke="#ef4444"
-          strokeWidth="3"
+          strokeWidth="4"
           strokeLinecap="round"
-          className="text-red-600"
         />
 
-        {/* Camera Body */}
+        {/* White Camera Body Silhouette */}
         <path
-          d="M 40 45 L 45 40 L 65 40 L 70 45 L 90 45 L 90 85 L 30 85 L 30 45 Z"
-          fill="currentColor"
+          d="M 45 55 L 50 50 L 75 50 L 80 55 L 105 55 L 105 105 L 35 105 L 35 55 Z"
+          fill="white"
         />
         
-        {/* Lens */}
-        <circle cx="60" cy="65" r="15" fill="#111" stroke="#ef4444" strokeWidth="3" />
-        <circle cx="60" cy="65" r="8" fill="#333" />
-        <circle cx="56" cy="61" r="2" fill="white" opacity="0.5" />
+        {/* Stylized Red Lens overlapping camera */}
+        <g transform="translate(70, 80)">
+          <circle r="22" fill="#ef4444" />
+          <circle r="16" fill="black" />
+          <circle r="12" fill="#333" />
+          {/* Lens reflection */}
+          <circle cx="-5" cy="-5" r="3" fill="white" opacity="0.4" />
+        </g>
 
-        {/* Text SAGAR */}
+        {/* Text SAGAR in Bold Red */}
         <text
-          x="105"
-          y="75"
-          fontSize="48"
-          fontWeight="bold"
+          x="120"
+          y="85"
+          fontSize="52"
+          fontWeight="900"
           fill="#ef4444"
-          fontFamily="serif"
+          fontFamily="Times New Roman, serif"
           style={{ letterSpacing: '-1px' }}
         >
           SAGAR
         </text>
 
-        {/* Text Studio */}
+        {/* Text Studio in White Script */}
         <text
-          x="265"
-          y="75"
-          fontSize="48"
-          fill="currentColor"
+          x="285"
+          y="85"
+          fontSize="52"
+          fill="white"
           fontFamily="'Playfair Display', serif"
           fontStyle="italic"
         >
           Studio
         </text>
 
-        {/* Text PHOTOGRAPHY */}
+        {/* Text PHOTOGRAPHY below */}
         <text
-          x="110"
-          y="105"
-          fontSize="24"
-          fill="currentColor"
+          x="125"
+          y="115"
+          fontSize="28"
+          fill="white"
           fontFamily="serif"
-          style={{ letterSpacing: '8px' }}
+          style={{ letterSpacing: '6px' }}
         >
           PHOTOGRAPHY
         </text>
 
-        {/* Wing Element */}
-        <g transform="translate(360, 60)" fill="currentColor">
-          <path d="M 0 0 C 20 -10, 40 10, 30 40 C 35 20, 25 5, 0 5 Z" />
-          <path d="M 0 -10 C 25 -25, 50 0, 40 30 C 45 10, 35 -5, 0 -5 Z" opacity="0.8" />
-          <path d="M 0 -20 C 30 -40, 60 -10, 50 20 C 55 0, 45 -15, 0 -15 Z" opacity="0.6" />
+        {/* Wing Element on the right */}
+        <g transform="translate(390, 75)" fill="white">
+          <path d="M 0 0 C 15 -10, 35 5, 25 35 C 30 15, 20 0, 0 5 Z" />
+          <path d="M 0 -10 C 20 -25, 45 -5, 35 25 C 40 5, 30 -10, 0 -5 Z" opacity="0.8" />
+          <path d="M 0 -20 C 25 -40, 55 -15, 45 15 C 50 -5, 40 -20, 0 -15 Z" opacity="0.6" />
         </g>
       </svg>
     </div>
