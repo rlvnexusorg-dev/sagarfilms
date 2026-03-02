@@ -36,11 +36,13 @@ export default function Home() {
       <section className="relative h-[90vh] w-full overflow-hidden">
         {/* YouTube Background Video */}
         <div className="absolute inset-0 z-0 w-full h-full pointer-events-none">
-          <iframe
+        <iframe
             className="w-full h-full scale-150"
-            src="https://www.youtube.com/embed/Gv5ioB0fS60?autoplay=1&mute=1&loop=1&playlist=Gv5ioB0fS60&controls=0&showinfo=0&rel=0&modestbranding=1"
-            title="Sagar Films Showreel"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            src="https://www.youtube.com/embed/mTYgXtAbZYg?autoplay=1&mute=1&loop=1&playlist=mTYgXtAbZYg&controls=0&showinfo=0&rel=0&modestbranding=1"
+            title="Sagar Films Cinematic Showreel"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
           ></iframe>
         </div>
 

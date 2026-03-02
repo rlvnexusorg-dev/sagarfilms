@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { addDays, format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import { Check, Calendar as CalendarIcon, Package, User, Download, Mail } from "lucide-react";
+import { Check, Calendar as CalendarIcon, Package, User, Download } from "lucide-react";
 import jsPDF from "jspdf";
 
 const packages = [
@@ -20,7 +21,8 @@ const packages = [
 ];
 
 export function BookingForm() {
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [bookedDates, setBookedDates] = useState<Date[]>([]);
   const [selectedPackage, setSelectedPackage] = useState("pro");
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -32,10 +34,26 @@ export function BookingForm() {
     duration: "fullday",
   });
 
+  // Fetch booked dates from the API when the component mounts
+  useEffect(() => {
+    const fetchBookedDates = async () => {
+      try {
+        const response = await fetch("/api/bookings");
+        const data = await response.json();
+        // The API returns date strings, so we convert them to Date objects
+        const dates = data.map((dateString: string) => new Date(dateString));
+        setBookedDates(dates);
+      } catch (error) {
+        toast({ title: "Error", description: "Could not fetch booked dates.", variant: "destructive" });
+      }
+    };
+    fetchBookedDates();
+  }, []);
+
   const handleNext = () => setStep(step + 1);
   const handleBack = () => setStep(step - 1);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
   };
@@ -67,10 +85,9 @@ export function BookingForm() {
     doc.text(formData.phone, 20, 67);
 
     doc.text("Event Details:", 100, 50);
-    doc.text(`Date: ${date?.toLocaleDateString()}`, 100, 57);
+    doc.text(`Date: ${date ? format(date, "PPP") : 'N/A'}`, 100, 57);
     doc.text(`Location: ${formData.location}`, 100, 62);
     doc.text(`Type: ${formData.eventType}`, 100, 67);
-
 
     doc.line(20, 80, 190, 80);
 
@@ -92,31 +109,34 @@ export function BookingForm() {
   };
 
   const handleBookingConfirm = async () => {
-    const pdf = generateInvoice();
-    pdf.save("SagarFilms_Invoice.pdf");
-    
-    const pdfData = pdf.output('datauristring');
-
-    try {
-      const response = await fetch("/api/send-invoice", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          to: "sagarfilmsstudio.in@gmail.com",
-          pdfData: pdfData,
-          customerName: formData.name,
-        }),
-      });
-
-      if (response.ok) {
-        toast({ title: "Invoice Sent!", description: "A copy has been sent to your email." });
-      } else {
-        throw new Error("Failed to send email.");
-      }
-    } catch (error) {
-      toast({ title: "Error", description: "Could not send the invoice email. Please try again.", variant: "destructive" });
+    if (!date) {
+      toast({ title: "Error", description: "Please select a date.", variant: "destructive" });
+      return;
     }
 
+    // Save the new booking to the server
+    try {
+      const response = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: date.toISOString() }), // Send in ISO format
+      });
+      if (!response.ok) throw new Error("Failed to save booking.");
+
+      // Add the new date to our local state to instantly update the UI
+      setBookedDates(prev => [...prev, date]);
+      toast({ title: "Booking Saved", description: "Your date has been reserved." });
+
+    } catch (error) {
+      toast({ title: "Booking Error", description: "Could not save your booking. Please try again.", variant: "destructive" });
+      return; // Stop if booking fails
+    }
+
+    // Generate and download the invoice
+    const pdf = generateInvoice();
+    pdf.save("SagarFilms_Invoice.pdf");
+
+    // Move to the final confirmation step
     setStep(4);
   };
   
@@ -127,7 +147,7 @@ export function BookingForm() {
           <Check className="h-10 w-10 text-green-600" />
         </div>
         <h2 className="font-headline text-3xl font-bold text-primary mb-4">Thank You!</h2>
-        <p className="text-muted-foreground mb-8">Your booking for {date?.toLocaleDateString()} has been received. Our team will contact you within 24 hours.</p>
+        <p className="text-muted-foreground mb-8">Your booking for {date ? format(date, "PPP") : 'your selected date'} has been confirmed. An invoice has been downloaded.</p>
         <Button onClick={() => window.location.href = '/'} className="bg-primary">Return Home</Button>
       </div>
     );
@@ -163,17 +183,33 @@ export function BookingForm() {
                 <div className="grid md:grid-cols-2 gap-12 items-start">
                   <div className="space-y-4">
                     <Label className="text-lg font-semibold">Select your date</Label>
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                      numberOfMonths={1}
-                      className="p-4 rounded-md border shadow-lg bg-background w-full"
-                      classNames={{
-                        day_selected: "bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary/90",
-                        today: "bg-accent text-accent-foreground",
-                      }}
-                    />
+                    <Card className="overflow-hidden shadow-lg">
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        disabled={[
+                          ...bookedDates, // Disable dates fetched from the server
+                          { before: addDays(new Date(), 1) } // Disable past dates
+                        ]}
+                        initialFocus
+                        className="p-0"
+                        classNames={{
+                          root: "w-full",
+                          months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                          month: "space-y-4",
+                          caption: "flex justify-center pt-4 relative items-center text-lg font-bold",
+                          nav: "space-x-1 flex items-center",
+                          head_row: "flex justify-evenly w-full mt-4 font-semibold",
+                          row: "flex w-full mt-2 justify-evenly",
+                          day: "h-10 w-10 text-center text-base p-0 relative aria-selected:opacity-100",
+                          day_selected: "bg-primary text-primary-foreground hover:bg-primary/90 rounded-full",
+                          day_today: "bg-accent text-accent-foreground rounded-full",
+                          day_outside: "text-muted-foreground opacity-50",
+                          day_disabled: "bg-muted text-muted-foreground opacity-50 cursor-not-allowed line-through", // Updated style for booked dates
+                        }}
+                      />
+                    </Card>
                   </div>
                   <div className="space-y-8">
                     <div className="space-y-4">
@@ -206,7 +242,7 @@ export function BookingForm() {
                   </div>
                 </div>
                 <div className="flex justify-end pt-8">
-                  <Button type="button" onClick={handleNext} size="lg" className="px-10">Next Step</Button>
+                  <Button type="button" onClick={handleNext} size="lg" className="px-10" disabled={!date}>Next Step</Button>
                 </div>
               </div>
             )}
@@ -269,12 +305,12 @@ export function BookingForm() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Date:</span>
-                    <span className="font-bold">{date?.toLocaleDateString()}</span>
+                    <span className="font-bold">{date ? format(date, "PPP") : 'N/A'}</span>
                   </div>
                 </Card>
                 <div className="flex justify-between pt-8">
                   <Button type="button" variant="outline" onClick={handleBack}>Back</Button>
-                  <Button onClick={handleBookingConfirm} size="lg" className="px-10 bg-green-600 hover:bg-green-700">
+                  <Button onClick={handleBookingConfirm} size="lg" className="px-10 bg-green-600 hover:bg-green-700" disabled={!formData.name || !formData.email || !formData.phone}>
                     <Download className="mr-2 h-5 w-5" />
                     Confirm & Download Invoice
                   </Button>
