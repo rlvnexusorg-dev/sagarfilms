@@ -3,7 +3,9 @@ import type { Metadata } from "next";
 import { PT_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { WhatsAppFAB } from "@/components/whatsapp-fab"; // Import the component
+import { WhatsAppFAB } from "@/components/whatsapp-fab";
+import { FirebaseClientProvider } from "@/firebase";
+import { Toaster } from "@/components/ui/toaster";
 
 const ptSans = PT_Sans({ 
   subsets: ["latin"],
@@ -35,8 +37,11 @@ export default function RootLayout({
           playfairDisplay.variable
         )}
       >
-        {children}
-        <WhatsAppFAB />
+        <FirebaseClientProvider>
+          {children}
+          <WhatsAppFAB />
+          <Toaster />
+        </FirebaseClientProvider>
       </body>
     </html>
   );

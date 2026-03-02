@@ -1,11 +1,18 @@
 
+"use client";
+
 import Link from "next/link";
+import Image from "next/image";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Camera, Video, Sparkles } from "lucide-react";
+import { Camera, Video, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { ReviewsSection } from "@/components/reviews";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { useState, useEffect, useCallback } from "react";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 
 const services = [
   {
@@ -25,41 +32,76 @@ const services = [
   },
 ];
 
+const heroImages = PlaceHolderImages.filter(img => img.id.includes('carousel-') || img.id === 'hero-wedding');
+
 export default function Home() {
-  const videoId = "tHckmMuhVAs";
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 5000 })]);
+
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
 
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       
-      {/* Hero Section */}
-      <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full z-[-1] pointer-events-none">
-          <iframe
-            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&modestbranding=1&iv_load_policy=3&rel=0&playsinline=1`}
-            frameBorder="0"
-            allow="autoplay; encrypted-media"
-            className="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto -translate-x-1/2 -translate-y-1/2 scale-[1.2]"
-          ></iframe>
-        </div>
-        <div className="absolute inset-0 bg-black/60"></div> {/* Dark overlay */}
-        
-        <div className="relative z-10 text-center text-primary-foreground px-4 animate-fade-in">
-          <h1 className="font-headline text-5xl md:text-7xl font-bold mb-6 tracking-tight">
-            Moments Frozen in <span className="text-accent italic">Elegance</span>
-          </h1>
-          <p className="text-xl md:text-2xl mb-10 max-w-2xl mx-auto font-body font-light opacity-90">
-            Premier photography and cinematic videography studio specializing in grand weddings and intimate ceremonies.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold px-8 py-6 text-lg">
-              <Link href="/booking">Book Your Date</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="border-primary-foreground text-primary-foreground hover:bg-white/10 px-8 py-6 text-lg">
-              <Link href="/portfolio">View Portfolio</Link>
-            </Button>
+      {/* Hero Section with Carousel */}
+      <section className="relative h-[90vh] w-full overflow-hidden">
+        <div className="embla h-full" ref={emblaRef}>
+          <div className="embla__container h-full flex">
+            {heroImages.map((image, index) => (
+              <div key={index} className="embla__slide flex-[0_0_100%] min-w-0 h-full relative">
+                <Image
+                  src={image.imageUrl}
+                  alt={image.description}
+                  fill
+                  priority={index === 0}
+                  className="object-cover"
+                  data-ai-hint={image.imageHint}
+                />
+                <div className="absolute inset-0 bg-black/50"></div>
+              </div>
+            ))}
           </div>
         </div>
+
+        {/* Hero Content Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center z-10">
+          <div className="text-center text-primary-foreground px-4 max-w-4xl animate-fade-in">
+            <h1 className="font-headline text-5xl md:text-7xl font-bold mb-6 tracking-tight drop-shadow-lg">
+              Moments Frozen in <span className="text-accent italic">Elegance</span>
+            </h1>
+            <p className="text-xl md:text-2xl mb-10 max-w-2xl mx-auto font-body font-light opacity-90 drop-shadow-md">
+              Premier photography and cinematic videography studio specializing in grand weddings and intimate ceremonies.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold px-8 py-6 text-lg">
+                <Link href="/booking">Book Your Date</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="border-primary-foreground text-primary-foreground hover:bg-white/10 px-8 py-6 text-lg">
+                <Link href="/portfolio">View Portfolio</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Carousel Controls */}
+        <button 
+          onClick={scrollPrev}
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-black/30 hover:bg-black/50 p-3 rounded-full text-white transition-all hidden md:block"
+        >
+          <ChevronLeft className="h-8 w-8" />
+        </button>
+        <button 
+          onClick={scrollNext}
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-black/30 hover:bg-black/50 p-3 rounded-full text-white transition-all hidden md:block"
+        >
+          <ChevronRight className="h-8 w-8" />
+        </button>
       </section>
 
       {/* Services Preview */}
