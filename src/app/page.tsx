@@ -2,17 +2,12 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Camera, Video, Sparkles, ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { Camera, Video, Sparkles } from "lucide-react";
 import { ReviewsSection } from "@/components/reviews";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { useState, useEffect, useCallback } from "react";
-import useEmblaCarousel from "embla-carousel-react";
-import Autoplay from "embla-carousel-autoplay";
 
 const services = [
   {
@@ -32,24 +27,12 @@ const services = [
   },
 ];
 
-const heroImages = PlaceHolderImages.filter(img => img.id.includes('carousel-') || img.id === 'hero-wedding');
-
 export default function Home() {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 5000 })]);
-
-  const scrollPrev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev();
-  }, [emblaApi]);
-
-  const scrollNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
-  }, [emblaApi]);
-
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       
-      {/* Hero Section with Video Background */}
+      {/* Hero Section with Video Background Only */}
       <section className="relative h-[90vh] w-full overflow-hidden">
         {/* YouTube Background Video */}
         <div className="absolute inset-0 z-0 w-full h-full pointer-events-none">
@@ -61,28 +44,8 @@ export default function Home() {
           ></iframe>
         </div>
 
-        {/* Fallback/Overlay Carousel */}
-        <div className="absolute inset-0 z-5 opacity-40">
-           <div className="embla h-full" ref={emblaRef}>
-            <div className="embla__container h-full flex">
-              {heroImages.map((image, index) => (
-                <div key={index} className="embla__slide flex-[0_0_100%] min-w-0 h-full relative">
-                  <Image
-                    src={image.imageUrl}
-                    alt={image.description}
-                    fill
-                    priority={index === 0}
-                    className="object-cover"
-                    data-ai-hint={image.imageHint}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
         {/* Black Overlay for readability */}
-        <div className="absolute inset-0 bg-black/60 z-10"></div>
+        <div className="absolute inset-0 bg-black/50 z-10"></div>
 
         {/* Hero Content Overlay */}
         <div className="absolute inset-0 flex items-center justify-center z-20">
@@ -103,20 +66,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-
-        {/* Carousel Controls (Secondary Navigation) */}
-        <button 
-          onClick={scrollPrev}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-30 bg-black/30 hover:bg-black/50 p-3 rounded-full text-white transition-all hidden md:block"
-        >
-          <ChevronLeft className="h-8 w-8" />
-        </button>
-        <button 
-          onClick={scrollNext}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-30 bg-black/30 hover:bg-black/50 p-3 rounded-full text-white transition-all hidden md:block"
-        >
-          <ChevronRight className="h-8 w-8" />
-        </button>
       </section>
 
       {/* Services Preview */}
